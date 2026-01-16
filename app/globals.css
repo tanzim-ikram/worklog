@@ -1,17 +1,29 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --font-primary: "Poppins", "Inter", sans-serif;
+  --font-secondary: "Inter", sans-serif;
+}
+
 :root {
   /* Light Mode - Calm & Nature Inspired */
-  --background: rgb(241, 242, 255);
-  /* Warm white/cream */
-  --foreground: #2d3436;
+  --background: rgb(241 242 255);
+  --foreground: rgb(45 52 54);
   --primary: rgb(99 102 241);
-  /* Indigo */
-  --primary-foreground: #ffffff;
-  --surface: #ffffff;
-  --surface-foreground: #2d3436;
-  --border: #e8e6e1;
-  --muted-foreground: #6b7280;
+  --primary-foreground: rgb(255 255 255);
+  --surface: rgb(255 255 255);
+  --surface-foreground: rgb(45 52 54);
+  --border: rgb(232 230 225);
+  --muted-foreground: rgb(107 114 128);
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.6);
@@ -22,16 +34,14 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Dark Mode - Deep Forest Focus */
-    --background: #050a06;
-    /* Deep pine black */
-    --foreground: #e2e8f0;
+    --background: rgb(5 10 6);
+    --foreground: rgb(226 232 240);
     --primary: rgb(129 140 248);
-    /* Lighter Indigo */
-    --primary-foreground: #000000;
-    --surface: #0f1610;
-    --surface-foreground: #e2e8f0;
-    --border: #1e2920;
-    --muted-foreground: #9ca3af;
+    --primary-foreground: rgb(0 0 0);
+    --surface: rgb(15 22 16);
+    --surface-foreground: rgb(226 232 240);
+    --border: rgb(30 41 32);
+    --muted-foreground: rgb(156 163 175);
 
     /* Glassmorphism Dark */
     --glass-bg: rgba(15, 22, 16, 0.6);
@@ -43,7 +53,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Outfit", "Inter", sans-serif;
+  font-family: var(--font-primary);
   background-image:
     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.05) 0px, transparent 50%);
@@ -51,7 +61,23 @@ body {
   min-height: 100vh;
 }
 
-/* Utilities */
+/* Typography Defaults */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-primary);
+}
+
+p,
+span,
+div {
+  font-family: var(--font-secondary);
+}
+
+/* Custom Utilities */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(20px);

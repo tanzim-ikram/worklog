@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { format, parseISO, addDays, subDays } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
+import AddSessionModal from '@/components/AddSessionModal'
 
 interface Session {
   id: string
@@ -28,6 +29,7 @@ function DayPageContent() {
   const [editForm, setEditForm] = useState<{ start: string; end: string; note: string }>({ start: '', end: '', note: '' })
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   const fetchDayData = useCallback(async () => {
     setLoading(true)
@@ -129,7 +131,16 @@ function DayPageContent() {
           <p className="mt-1 text-muted-foreground">Daily sessions & details</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-medium text-sm order-last md:order-first w-full md:w-auto justify-center"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Session
+          </button>
           <button
             onClick={() => navigateDay('prev')}
             className="p-2 glass-panel rounded-xl hover:bg-primary/10 transition-colors"
@@ -177,11 +188,14 @@ function DayPageContent() {
 
             {data.sessions.length === 0 ? (
               <div className="text-center py-10 text-muted-foreground">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4 mx-auto">
+                <button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4 mx-auto hover:bg-primary/20 transition-colors"
+                >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                </div>
+                </button>
                 No sessions recorded for this day
               </div>
             ) : (
@@ -308,6 +322,13 @@ function DayPageContent() {
           <div className="text-center text-red-500 py-10">Failed to load data</div>
         )}
       </div>
+
+      <AddSessionModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchDayData}
+        initialDate={date}
+      />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, startOfWeek, addDays, subWeeks, addWeeks } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
+import AddSessionModal from '@/components/AddSessionModal'
 
 interface WeekSession {
   id: string
@@ -22,6 +23,8 @@ export default function WeekPage() {
     totalSeconds: number
   } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string | undefined>()
 
   const fetchWeekData = useCallback(async () => {
     setLoading(true)
@@ -136,8 +139,22 @@ export default function WeekPage() {
                         {dayData?.sessions.length || 0} session{dayData?.sessions.length !== 1 ? 's' : ''}
                       </div>
                     </div>
-                    <div className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg">
-                      {formatDurationHours(totalSeconds)}
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg whitespace-nowrap">
+                        {formatDurationHours(totalSeconds)}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setSelectedDate(dateStr)
+                          setIsAddModalOpen(true)
+                        }}
+                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        title="Add session"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 )
@@ -148,6 +165,13 @@ export default function WeekPage() {
           <div className="text-center text-red-500 py-10">Failed to load data</div>
         )}
       </div>
+
+      <AddSessionModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchWeekData}
+        initialDate={selectedDate}
+      />
     </div>
   )
 }
