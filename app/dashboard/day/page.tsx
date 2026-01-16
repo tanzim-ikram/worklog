@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { format, parseISO, addDays, subDays } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
@@ -29,11 +29,7 @@ function DayPageContent() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchDayData()
-  }, [date])
-
-  const fetchDayData = async () => {
+  const fetchDayData = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/summary/day?date=${date}`)
@@ -46,7 +42,11 @@ function DayPageContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [date])
+
+  useEffect(() => {
+    fetchDayData()
+  }, [fetchDayData])
 
   const navigateDay = (direction: 'prev' | 'next') => {
     const current = parseISO(date)
@@ -90,7 +90,11 @@ function DayPageContent() {
   const handleSave = async (sessionId: string) => {
     setSaving(true)
     try {
-      const payload: any = {
+      const payload: {
+        note: string
+        start_at?: string
+        end_at?: string
+      } = {
         note: editForm.note,
       }
       
@@ -116,10 +120,10 @@ function DayPageContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
+          <h1 className="text-3xl font-bold text-primary">
             Day View
           </h1>
           <p className="mt-1 text-muted-foreground">Daily sessions & details</p>

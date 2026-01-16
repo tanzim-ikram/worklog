@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SettingsPage() {
@@ -20,11 +20,7 @@ export default function SettingsPage() {
 
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -41,12 +37,16 @@ export default function SettingsPage() {
         setTimezone(profile.timezone || 'UTC')
         setFullName(profile.full_name || '')
       }
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,8 +70,8 @@ export default function SettingsPage() {
 
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setSaving(false)
     }
@@ -103,8 +103,8 @@ export default function SettingsPage() {
       setNewPassword('')
       setConfirmPassword('')
       setTimeout(() => setPasswordSuccess(false), 3000)
-    } catch (err: any) {
-      setPasswordError(err.message)
+    } catch (err: unknown) {
+      setPasswordError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setPasswordLoading(false)
     }
@@ -147,9 +147,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="mx-auto space-y-8 pb-8">
       <div>
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
+        <h1 className="text-3xl font-bold text-primary">
           Settings
         </h1>
         <p className="mt-1 text-muted-foreground">Manage your account preferences</p>

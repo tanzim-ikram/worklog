@@ -2,37 +2,21 @@
 
 :root {
   /* Light Mode - Calm & Nature Inspired */
-  --background: #fdfbf7;
+  --background: rgb(241, 242, 255);
   /* Warm white/cream */
   --foreground: #2d3436;
-  --primary: #597e52;
-  /* Sage Green */
+  --primary: rgb(99 102 241);
+  /* Indigo */
   --primary-foreground: #ffffff;
   --surface: #ffffff;
   --surface-foreground: #2d3436;
   --border: #e8e6e1;
+  --muted-foreground: #6b7280;
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-shadow: 0 8px 32px 0 rgba(89, 126, 82, 0.1);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --color-border: var(--border);
-
-  --color-glass-bg: var(--glass-bg);
-  --color-glass-border: var(--glass-border);
-  --shadow-glass: var(--glass-shadow);
-
-  --font-sans: var(--font-geist-sans), "Outfit", "Inter", sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --glass-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,16 +25,17 @@
     --background: #050a06;
     /* Deep pine black */
     --foreground: #e2e8f0;
-    --primary: #76a86d;
-    /* Lighter Sage */
+    --primary: rgb(129 140 248);
+    /* Lighter Indigo */
     --primary-foreground: #000000;
     --surface: #0f1610;
     --surface-foreground: #e2e8f0;
     --border: #1e2920;
+    --muted-foreground: #9ca3af;
 
     /* Glassmorphism Dark */
     --glass-bg: rgba(15, 22, 16, 0.6);
-    --glass-border: rgba(118, 168, 109, 0.1);
+    --glass-border: rgba(129, 140, 248, 0.1);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   }
 }
@@ -58,10 +43,10 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-geist-sans), "Outfit", "Inter", sans-serif;
   background-image:
-    radial-gradient(at 0% 0%, rgba(89, 126, 82, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(118, 168, 109, 0.05) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.05) 0px, transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
 }

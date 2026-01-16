@@ -38,8 +38,8 @@ export default function TimerCard() {
       setStatus(data)
       setDisplaySeconds(data.elapsedSeconds)
       setError(null)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
@@ -71,8 +71,8 @@ export default function TimerCard() {
         throw new Error(data.error || `Failed to ${action} timer`)
       }
       await fetchStatus()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setActionLoading(null)
     }
@@ -121,7 +121,7 @@ export default function TimerCard() {
               cx="144"
               cy="144"
               r={radius}
-              className="stroke-gray-200 dark:stroke-gray-700"
+              className="stroke-indigo-100 dark:stroke-gray-700"
               strokeWidth="12"
               fill="transparent"
             />

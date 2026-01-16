@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
 import Link from 'next/link'
@@ -14,11 +14,7 @@ export default function MonthPage() {
   } | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchMonthData()
-  }, [month])
-
-  const fetchMonthData = async () => {
+  const fetchMonthData = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/summary/month?month=${month}`)
@@ -33,7 +29,11 @@ export default function MonthPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [month])
+
+  useEffect(() => {
+    fetchMonthData()
+  }, [fetchMonthData])
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     const current = parseISO(month + '-01')
@@ -59,10 +59,10 @@ export default function MonthPage() {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
+          <h1 className="text-3xl font-bold text-primary">
             Month View
           </h1>
           <p className="mt-1 text-muted-foreground">Monthly overview & exports</p>
@@ -173,14 +173,14 @@ export default function MonthPage() {
                     <div
                       key={dateStr}
                       className={`relative aspect-[1.2] group ${
-                        isToday ? 'ring-2 ring-inset ring-blue-400 z-10' : ''
-                      } ${bgClass} transition-colors hover:bg-gray-100 dark:hover:bg-white/10`}
+                        isToday ? 'ring-2 ring-inset ring-primary z-10' : ''
+                      } ${bgClass} transition-colors hover:bg-primary/20 dark:hover:bg-white/10`}
                     >
                       <Link
                         href={`/dashboard/day?date=${dateStr}`}
-                        className="block w-full h-full p-2 flex flex-col justify-between"
+                        className="w-full h-full p-2 flex flex-col justify-between"
                       >
-                         <span className={`text-sm ${isToday ? 'font-bold text-blue-600 dark:text-blue-400' : 'text-foreground/70'}`}>
+                         <span className={`text-sm ${isToday ? 'font-bold text-primary dark:text-primary' : 'text-foreground/70'}`}>
                            {format(day, 'd')}
                          </span>
                          

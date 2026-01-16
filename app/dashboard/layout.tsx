@@ -23,7 +23,7 @@ export default async function AppLayout({
       {/* Sidebar */}
       <aside className="w-64 glass-panel border-r border-glass-border hidden md:flex flex-col">
         <div className="p-6">
-          <Link href="/dashboard" className="flex items-center gap-2 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
+          <Link href="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
             WorkLog
           </Link>
           <p className="text-xs text-muted-foreground mt-1">
@@ -48,7 +48,7 @@ export default async function AppLayout({
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto relative">
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-size-[50px_50px]" />
         <div className="h-full p-8 relative">
           {children}
         </div>

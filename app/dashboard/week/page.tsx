@@ -1,8 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, startOfWeek, addDays, subWeeks, addWeeks } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
+
+interface WeekSession {
+  id: string
+  local_date: string
+  note?: string
+  project_id?: string
+}
 
 export default function WeekPage() {
   const [startDate, setStartDate] = useState(
@@ -11,16 +18,12 @@ export default function WeekPage() {
   const [data, setData] = useState<{
     start: string
     end: string
-    days: Record<string, { totalSeconds: number; sessions: any[] }>
+    days: Record<string, { totalSeconds: number; sessions: WeekSession[] }>
     totalSeconds: number
   } | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchWeekData()
-  }, [startDate])
-
-  const fetchWeekData = async () => {
+  const fetchWeekData = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/summary/week?start=${startDate}`)
@@ -35,7 +38,11 @@ export default function WeekPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [startDate])
+
+  useEffect(() => {
+    fetchWeekData()
+  }, [fetchWeekData])
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     const current = parseISO(startDate)
@@ -52,10 +59,10 @@ export default function WeekPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
+          <h1 className="text-3xl font-bold text-primary">
             Week View
           </h1>
           <p className="mt-1 text-muted-foreground">Weekly overview & totals</p>
