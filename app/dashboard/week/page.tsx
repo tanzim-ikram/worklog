@@ -5,6 +5,7 @@ import { format, parseISO, startOfWeek, addDays, subWeeks, addWeeks } from 'date
 import { formatDurationHours } from '@/lib/utils/timezone'
 import AddSessionModal from '@/components/AddSessionModal'
 import ShareButton from '@/components/ShareButton'
+import Link from 'next/link'
 
 interface WeekSession {
   id: string
@@ -141,18 +142,24 @@ export default function WeekPage() {
                       isToday ? 'border-primary/30 bg-primary/5' : 'border-transparent'
                     } hover:border-primary/20 transition-all`}
                   >
-                    <div>
+                    <Link 
+                      href={`/dashboard/day?date=${dateStr}`}
+                      className="flex-1"
+                    >
                       <div className={`font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
                         {format(day, 'EEEE, MMMM d')}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {dayData?.sessions.length || 0} session{dayData?.sessions.length !== 1 ? 's' : ''}
                       </div>
-                    </div>
+                    </Link>
                     <div className="flex items-center gap-4">
-                      <div className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg whitespace-nowrap">
+                      <Link 
+                        href={`/dashboard/day?date=${dateStr}`}
+                        className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg whitespace-nowrap"
+                      >
                         {formatDurationHours(totalSeconds)}
-                      </div>
+                      </Link>
                       <button 
                         onClick={() => {
                           setSelectedDate(dateStr)
