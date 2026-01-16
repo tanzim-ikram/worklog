@@ -1,26 +1,76 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode - Calm & Nature Inspired */
+  --background: #fdfbf7;
+  /* Warm white/cream */
+  --foreground: #2d3436;
+  --primary: #597e52;
+  /* Sage Green */
+  --primary-foreground: #ffffff;
+  --surface: #ffffff;
+  --surface-foreground: #2d3436;
+  --border: #e8e6e1;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px 0 rgba(89, 126, 82, 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-border: var(--border);
+
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --shadow-glass: var(--glass-shadow);
+
+  --font-sans: var(--font-geist-sans), "Outfit", "Inter", sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark Mode - Deep Forest Focus */
+    --background: #050a06;
+    /* Deep pine black */
+    --foreground: #e2e8f0;
+    --primary: #76a86d;
+    /* Lighter Sage */
+    --primary-foreground: #000000;
+    --surface: #0f1610;
+    --surface-foreground: #e2e8f0;
+    --border: #1e2920;
+
+    /* Glassmorphism Dark */
+    --glass-bg: rgba(15, 22, 16, 0.6);
+    --glass-border: rgba(118, 168, 109, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(89, 126, 82, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(118, 168, 109, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }

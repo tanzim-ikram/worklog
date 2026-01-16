@@ -55,7 +55,7 @@ export async function PATCH(
       // Get current segments
       const { data: segments, error: segmentsError } = await supabase
         .from('work_segments')
-        .select('id')
+        .select('id, start_at, end_at')
         .eq('session_id', id)
         .eq('user_id', user.id)
         .order('start_at', { ascending: true })
@@ -108,3 +108,43 @@ export async function PATCH(
   }
 }
 
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    // Verify session belongs to user and delete (Cascade should handle segments if configured, but let's be safe)
+    // Actually standard supabase deletion constraints usually require manual segment deletion unless Cascade is set.
+    // Assuming cascade is set given standard setup. If not, we might need to delete segments first.
+    // Let's delete segments first just in case.
+    await supabase.from('work_segments').delete().eq('session_id', id).eq('user_id', user.id)
+
+    const { error } = await supabase
+      .from('work_sessions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

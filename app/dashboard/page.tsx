@@ -5,8 +5,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">Track your work time</p>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-muted-foreground">Track your work time</p>
       </div>
 
       <TimerCard />
@@ -15,4 +17,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

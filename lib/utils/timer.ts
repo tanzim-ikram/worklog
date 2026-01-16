@@ -48,11 +48,17 @@ export async function getTimerStatus(userId: string, timezone: string): Promise<
       sessionId: runningSegment.session_id,
     }
     if (runningSegment.work_sessions) {
-      currentSession = {
-        id: runningSegment.work_sessions.id,
-        localDate: runningSegment.work_sessions.local_date,
-        note: runningSegment.work_sessions.note || undefined,
-        projectId: runningSegment.work_sessions.project_id || undefined,
+      const session = Array.isArray(runningSegment.work_sessions)
+        ? runningSegment.work_sessions[0]
+        : runningSegment.work_sessions
+
+      if (session) {
+        currentSession = {
+          id: session.id,
+          localDate: session.local_date,
+          note: session.note || undefined,
+          projectId: session.project_id || undefined,
+        }
       }
     }
   }

@@ -97,9 +97,10 @@ export async function GET(request: Request) {
     doc.text(`Work Report — ${monthParam}`, margin, 30)
 
     // User info
-    if (profile.full_name) {
+    // User info
+    if ((profile as any).full_name) {
       doc.setFontSize(12)
-      doc.text(`User: ${profile.full_name}`, margin, 40)
+      doc.text(`User: ${(profile as any).full_name}`, margin, 40)
     }
 
     let yPos = 50
