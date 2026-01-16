@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, startOfWeek, addDays, subWeeks, addWeeks } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
 import AddSessionModal from '@/components/AddSessionModal'
+import ShareButton from '@/components/ShareButton'
 
 interface WeekSession {
   id: string
@@ -108,13 +109,22 @@ export default function WeekPage() {
           </div>
         ) : data ? (
           <div className="animate-fade-in-up">
-            <div className="mb-6">
-              <div className="text-2xl font-semibold text-foreground">
-                Week of {format(parseISO(data.start), 'MMMM d')} - {format(parseISO(data.end), 'MMMM d, yyyy')}
+            <div className="mb-6 flex justify-between items-start gap-4">
+              <div>
+                <div className="text-2xl font-semibold text-foreground">
+                  Week of {format(parseISO(data.start), 'MMMM d')} - {format(parseISO(data.end), 'MMMM d, yyyy')}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Total Focus: <span className="font-medium text-primary">{formatDurationHours(data.totalSeconds)}</span>
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Total Focus: <span className="font-medium text-primary">{formatDurationHours(data.totalSeconds)}</span>
-              </div>
+              <ShareButton 
+                title="Weekly Focus"
+                subtitle={`Week of ${format(parseISO(data.start), 'MMM d')} - ${format(parseISO(data.end), 'MMM d, yyyy')}`}
+                mainStat={formatDurationHours(data.totalSeconds)}
+                label="Total Work Time"
+                fileName={`weekly-stats-${data.start}`}
+              />
             </div>
 
             <div className="space-y-3">

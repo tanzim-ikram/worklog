@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { format, parseISO, addDays, subDays } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
 import AddSessionModal from '@/components/AddSessionModal'
+import ShareButton from '@/components/ShareButton'
 
 interface Session {
   id: string
@@ -178,11 +179,22 @@ function DayPageContent() {
         ) : data ? (
           <div className="animate-fade-in-up">
             <div className="mb-6">
-              <div className="text-2xl font-semibold text-foreground">
-                {format(parseISO(data.date), 'EEEE, MMMM d, yyyy')}
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Total Focus: <span className="font-medium text-primary">{formatDurationHours(data.totalSeconds)}</span>
+              <div className="flex justify-between items-start gap-4">
+                <div>
+                  <div className="text-2xl font-semibold text-foreground">
+                    {format(parseISO(data.date), 'EEEE, MMMM d, yyyy')}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Total Focus: <span className="font-medium text-primary">{formatDurationHours(data.totalSeconds)}</span>
+                  </div>
+                </div>
+                <ShareButton 
+                  title="Daily Focus"
+                  subtitle={format(parseISO(data.date), 'EEEE, MMMM d, yyyy')}
+                  mainStat={formatDurationHours(data.totalSeconds)}
+                  label="Total Work Time"
+                  fileName={`daily-stats-${data.date}`}
+                />
               </div>
             </div>
 

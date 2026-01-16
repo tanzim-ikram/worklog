@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns'
 import { formatDurationHours } from '@/lib/utils/timezone'
 import Link from 'next/link'
+import ShareButton from '@/components/ShareButton'
 
 export default function MonthPage() {
   const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'))
@@ -116,7 +117,15 @@ export default function MonthPage() {
                 </div>
               </div>
               
-               <div className="flex gap-2">
+               <div className="flex items-center gap-2">
+                <ShareButton 
+                  title="Monthly Focus"
+                  subtitle={format(monthStart, 'MMMM yyyy')}
+                  mainStat={formatDurationHours(data.totalSeconds)}
+                  label="Total Work Time"
+                  fileName={`monthly-stats-${month}`}
+                />
+                <div className="h-6 w-[1px] bg-gray-200 dark:bg-white/10 mx-1" />
                 <a
                   href={`/api/export/month.csv?month=${month}`}
                   download
