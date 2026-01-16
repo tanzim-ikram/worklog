@@ -125,7 +125,7 @@ export default function MonthPage() {
                   label="Total Work Time"
                   fileName={`monthly-stats-${month}`}
                 />
-                <div className="h-6 w-[1px] bg-gray-200 dark:bg-white/10 mx-1" />
+                <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-1" />
                 <a
                   href={`/api/export/month.csv?month=${month}`}
                   download
