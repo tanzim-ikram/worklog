@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -39,6 +40,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="glass-panel w-full max-w-md p-8 rounded-2xl animate-fade-in-up">
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <Image 
+              src="/Worklog Logo.svg" 
+              alt="Worklog Logo" 
+              width={180} 
+              height={50}
+              priority
+            />
+          </div>
           <h1 className="text-3xl font-bold text-primary">
             Welcome Back
           </h1>

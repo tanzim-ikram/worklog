@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
 import Navigation from '@/components/Navigation'
 
@@ -22,13 +23,17 @@ export default async function AppLayout({
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
       <aside className="w-64 glass-panel border-r border-glass-border hidden md:flex flex-col">
-        <div className="p-6">
-          <Link href="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            WorkLog
+        <div className="p-4">
+          <Link href="/dashboard" className="flex items-center">
+            <Image 
+              src="/Worklog Logo.svg" 
+              alt="Worklog Logo" 
+              width={225} 
+              height={62}
+              className="dark:invert-0"
+              priority
+            />
           </Link>
-          <p className="text-xs text-muted-foreground mt-1">
-            Time Tracking Evolved
-          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4">
