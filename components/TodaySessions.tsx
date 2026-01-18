@@ -29,6 +29,15 @@ export default function TodaySessions() {
 
   useEffect(() => {
     fetchSessions()
+
+    const handleTimerChange = () => {
+      fetchSessions()
+    }
+
+    window.addEventListener('worklog-timer-changed', handleTimerChange)
+    return () => {
+      window.removeEventListener('worklog-timer-changed', handleTimerChange)
+    }
   }, [])
 
   const fetchSessions = async () => {
@@ -100,15 +109,31 @@ export default function TodaySessions() {
       }
       
       if (editForm.start && editForm.start !== formatForInput(originalStart)) {
-        payload.start_at = new Date(editForm.start).toISOString()
+        const start = new Date(editForm.start)
+        if (isNaN(start.getTime())) {
+          throw new Error('Invalid start time format')
+        }
+        payload.start_at = start.toISOString()
       }
       
       if (editForm.end !== formatForInput(originalEnd)) {
         if (editForm.end) {
-          payload.end_at = new Date(editForm.end).toISOString()
+          const end = new Date(editForm.end)
+          if (isNaN(end.getTime())) {
+            throw new Error('Invalid end time format')
+          }
+          payload.end_at = end.toISOString()
         } else if (originalEnd) {
           payload.end_at = null
         }
+      }
+
+      // Final validation: Ensure start < end if both exist
+      const finalStart = payload.start_at ? new Date(payload.start_at) : (originalStart ? new Date(originalStart) : null)
+      const finalEnd = payload.end_at !== undefined ? (payload.end_at ? new Date(payload.end_at) : null) : (originalEnd ? new Date(originalEnd) : null)
+
+      if (finalStart && finalEnd && finalStart >= finalEnd) {
+        throw new Error('Start time must be before end time')
       }
 
       const res = await fetch(`/api/sessions/${sessionId}`, {
@@ -117,13 +142,19 @@ export default function TodaySessions() {
         body: JSON.stringify(payload),
       })
 
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || `Update failed with status ${res.status}`)
+      }
       
       await fetchSessions()
       setEditingId(null)
+      
+      // Notify other components (like WeeklyStatsCard)
+      window.dispatchEvent(new CustomEvent('worklog-timer-changed'))
     } catch (err) {
-      console.error(err)
-      alert('Failed to save changes')
+      console.error('Session update error:', err)
+      alert(err instanceof Error ? err.message : 'Failed to save changes')
     } finally {
       setSaving(false)
     }

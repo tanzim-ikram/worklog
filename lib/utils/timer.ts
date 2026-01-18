@@ -23,6 +23,10 @@ export async function getTimerStatus(userId: string, timezone: string): Promise<
   const now = new Date()
   const today = getLocalDate(now, timezone)
 
+  let elapsedSeconds = 0
+  let currentSession = undefined
+  let currentSegment = undefined
+
   // Find running segment
   const { data: runningSegment, error: segmentError } = await supabase
     .from('work_segments')
@@ -35,30 +39,70 @@ export async function getTimerStatus(userId: string, timezone: string): Promise<
     throw new Error(`Failed to get running segment: ${segmentError.message}`)
   }
 
-  let elapsedSeconds = 0
-  let currentSession = undefined
-  let currentSegment = undefined
-
   if (runningSegment) {
-    const startAt = new Date(runningSegment.start_at)
-    elapsedSeconds = Math.floor((now.getTime() - startAt.getTime()) / 1000)
     currentSegment = {
       id: runningSegment.id,
       startAt: runningSegment.start_at,
       sessionId: runningSegment.session_id,
     }
-    if (runningSegment.work_sessions) {
-      const session = Array.isArray(runningSegment.work_sessions)
-        ? runningSegment.work_sessions[0]
-        : runningSegment.work_sessions
 
-      if (session) {
-        currentSession = {
-          id: session.id,
-          localDate: session.local_date,
-          note: session.note || undefined,
-          projectId: session.project_id || undefined,
-        }
+    const session = Array.isArray(runningSegment.work_sessions)
+      ? runningSegment.work_sessions[0]
+      : runningSegment.work_sessions
+
+    if (session) {
+      currentSession = {
+        id: session.id,
+        localDate: session.local_date,
+        note: session.note || undefined,
+        projectId: session.project_id || undefined,
+      }
+
+      // Calculate total elapsed seconds for all segments in this session
+      const { data: sessionSegments, error: sessionSegmentsError } = await supabase
+        .from('work_segments')
+        .select('start_at, end_at')
+        .eq('session_id', session.id)
+
+      if (!sessionSegmentsError && sessionSegments) {
+        elapsedSeconds = sessionSegments.reduce((total, seg) => {
+          const start = new Date(seg.start_at)
+          const end = seg.end_at ? new Date(seg.end_at) : now
+          return total + Math.floor((end.getTime() - start.getTime()) / 1000)
+        }, 0)
+      }
+    }
+  } else {
+    // If no segment is running, check if there's a recently active session (for the pause state display)
+    const { data: lastSession, error: lastSessionError } = await supabase
+      .from('work_sessions')
+      .select('id, local_date, note, project_id')
+      .eq('user_id', userId)
+      .eq('local_date', today)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (!lastSessionError && lastSession) {
+      currentSession = {
+        id: lastSession.id,
+        localDate: lastSession.local_date,
+        note: lastSession.note || undefined,
+        projectId: lastSession.project_id || undefined,
+      }
+
+      const { data: sessionSegments, error: sessionSegmentsError } = await supabase
+        .from('work_segments')
+        .select('start_at, end_at')
+        .eq('session_id', lastSession.id)
+
+      if (!sessionSegmentsError && sessionSegments) {
+        elapsedSeconds = sessionSegments.reduce((total, seg) => {
+          const start = new Date(seg.start_at)
+          const end = seg.end_at ? new Date(seg.end_at) : now
+          return total + Math.floor((end.getTime() - start.getTime()) / 1000)
+        }, 0)
       }
     }
   }

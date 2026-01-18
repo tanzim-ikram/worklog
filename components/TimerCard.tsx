@@ -62,17 +62,37 @@ export default function TimerCard() {
   }, [])
 
   const handleAction = async (action: 'start' | 'pause' | 'resume' | 'stop') => {
+    const previousStatus = status
     setActionLoading(action)
     setError(null)
+
+    // Optimistic Update
+    if (status) {
+      if (action === 'start' || action === 'resume') {
+        setStatus({ ...status, isRunning: true })
+      } else if (action === 'pause') {
+        setStatus({ ...status, isRunning: false })
+      } else if (action === 'stop') {
+        setStatus({ ...status, isRunning: false, currentSession: undefined, currentSegment: undefined })
+      }
+    }
+
     try {
       const res = await fetch(`/api/timer/${action}`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || `Failed to ${action} timer`)
       }
-      await fetchStatus()
+      
+      setStatus(data)
+      setDisplaySeconds(data.elapsedSeconds)
+      
+      // Notify other components (like TodaySessions)
+      window.dispatchEvent(new CustomEvent('worklog-timer-changed'))
+      
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      setStatus(previousStatus) // Rollback
     } finally {
       setActionLoading(null)
     }

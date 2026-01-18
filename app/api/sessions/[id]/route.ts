@@ -35,24 +35,27 @@ export async function PATCH(
     if (body.note !== undefined) updateData.note = body.note
     if (body.project_id !== undefined) updateData.project_id = body.project_id
 
-    const { data: updatedSession, error: updateError } = await supabase
-      .from('work_sessions')
-      .update(updateData)
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .select()
-      .single()
+    let updatedSession = session
+    if (Object.keys(updateData).length > 0) {
+      const { data: result, error: updateError } = await supabase
+        .from('work_sessions')
+        .update(updateData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single()
 
-    if (updateError) {
-      return NextResponse.json(
-        { error: `Failed to update session: ${updateError.message}` },
-        { status: 500 }
-      )
+      if (updateError) {
+        return NextResponse.json(
+          { error: `Failed to update session: ${updateError.message}` },
+          { status: 500 }
+        )
+      }
+      updatedSession = result
     }
 
     // If start/end times are provided, update segments
     if (body.start_at || body.end_at) {
-      // Get current segments
       const { data: segments, error: segmentsError } = await supabase
         .from('work_segments')
         .select('id, start_at, end_at')
@@ -68,32 +71,25 @@ export async function PATCH(
       }
 
       if (segments && segments.length > 0) {
-        // For simplicity, replace all segments with a single corrected segment
-        // Delete existing segments
-        await supabase
-          .from('work_segments')
-          .delete()
-          .eq('session_id', id)
-          .eq('user_id', user.id)
+        // Update the FIRST segment's start_at if provided
+        if (body.start_at) {
+          const { error: startError } = await supabase
+            .from('work_segments')
+            .update({ start_at: body.start_at })
+            .eq('id', segments[0].id)
 
-        // Create new single segment
-        const startAt = body.start_at || segments[0].start_at
-        const endAt = body.end_at || null
+          if (startError) throw new Error(`Start time update failed: ${startError.message}`)
+        }
 
-        const { error: createError } = await supabase
-          .from('work_segments')
-          .insert({
-            session_id: id,
-            user_id: user.id,
-            start_at: startAt,
-            end_at: endAt,
-          })
+        // Update the LAST segment's end_at if provided
+        if (body.end_at !== undefined) {
+          const lastIdx = segments.length - 1
+          const { error: endError } = await supabase
+            .from('work_segments')
+            .update({ end_at: body.end_at })
+            .eq('id', segments[lastIdx].id)
 
-        if (createError) {
-          return NextResponse.json(
-            { error: `Failed to update segments: ${createError.message}` },
-            { status: 500 }
-          )
+          if (endError) throw new Error(`End time update failed: ${endError.message}`)
         }
       }
     }
