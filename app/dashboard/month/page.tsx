@@ -163,7 +163,7 @@ export default function MonthPage() {
             </div>
 
             {/* Compact Calendar Grid */}
-            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm bg-white/40 dark:bg-black/20">
+            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm bg-white/40 dark:bg-black/20 max-h-[calc(100vh-20rem)]">
               <div className="grid grid-cols-7 bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
                 {weekDays.map((day) => (
                   <div key={day} className="py-2 text-center text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -171,13 +171,13 @@ export default function MonthPage() {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 dark:divide-white/5">
+              <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 dark:divide-white/5" style={{ gridAutoRows: '1fr' }}>
                 {calendarDays.map((day, idx) => {
                   if (!day) {
                     return (
                       <div
                         key={`empty-${idx}`}
-                        className="aspect-square sm:aspect-[1.2] bg-gray-50/30 dark:bg-white/2"
+                        className="min-h-[60px] sm:min-h-[80px] bg-gray-50/30 dark:bg-white/2"
                       />
                     )
                   }
@@ -200,7 +200,7 @@ export default function MonthPage() {
                   return (
                     <div
                       key={dateStr}
-                      className={`relative aspect-square sm:aspect-[1.2] group ${isToday ? 'ring-2 ring-inset ring-primary z-10' : ''
+                      className={`relative min-h-[60px] sm:min-h-[80px] group ${isToday ? 'ring-2 ring-inset ring-primary z-10' : ''
                         } ${bgClass} transition-colors hover:bg-primary/20 dark:hover:bg-white/10`}
                     >
                       <Link
