@@ -102,8 +102,17 @@ export default function MonthPage() {
 
       <div className="glass-panel p-6 rounded-2xl">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-white/5 rounded w-1/3"></div>
+            <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-1/4"></div>
+            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden mt-6">
+              <div className="grid grid-cols-7 bg-gray-50/50 dark:bg-white/5 h-10"></div>
+              <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 dark:divide-white/5">
+                {Array.from({ length: 35 }).map((_, i) => (
+                  <div key={i} className="aspect-[1.2] bg-gray-200 dark:bg-white/5"></div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : data ? (
           <div className="animate-fade-in-up">
@@ -193,6 +202,7 @@ export default function MonthPage() {
                     >
                       <Link
                         href={`/dashboard/day?date=${dateStr}`}
+                        prefetch={true}
                         className="w-full h-full p-2 flex flex-col justify-between"
                       >
                          <span className={`text-sm ${isToday ? 'font-bold text-primary dark:text-primary' : 'text-foreground/70'}`}>

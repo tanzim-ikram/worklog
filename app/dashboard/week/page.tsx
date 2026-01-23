@@ -105,8 +105,14 @@ export default function WeekPage() {
 
       <div className="glass-panel p-6 rounded-2xl">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-white/5 rounded w-1/3"></div>
+            <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-1/4"></div>
+            <div className="space-y-3 mt-6">
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <div key={i} className="h-16 bg-gray-200 dark:bg-white/5 rounded-xl"></div>
+              ))}
+            </div>
           </div>
         ) : data ? (
           <div className="animate-fade-in-up">
@@ -144,6 +150,7 @@ export default function WeekPage() {
                   >
                     <Link 
                       href={`/dashboard/day?date=${dateStr}`}
+                      prefetch={true}
                       className="flex-1"
                     >
                       <div className={`font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
@@ -156,6 +163,7 @@ export default function WeekPage() {
                     <div className="flex items-center gap-4">
                       <Link 
                         href={`/dashboard/day?date=${dateStr}`}
+                        prefetch={true}
                         className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg whitespace-nowrap"
                       >
                         {formatDurationHours(totalSeconds)}

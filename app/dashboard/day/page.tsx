@@ -173,8 +173,14 @@ function DayPageContent() {
 
       <div className="glass-panel p-6 rounded-2xl">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-white/5 rounded w-1/3"></div>
+            <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-1/4"></div>
+            <div className="space-y-3 mt-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 bg-gray-200 dark:bg-white/5 rounded-xl"></div>
+              ))}
+            </div>
           </div>
         ) : data ? (
           <div className="animate-fade-in-up">

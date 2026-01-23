@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { formatDuration, formatDurationHours } from '@/lib/utils/timezone'
 
 interface TimerStatus {
@@ -23,11 +23,18 @@ interface TimerStatus {
 export default function TimerCard() {
   const [status, setStatus] = useState<TimerStatus | null>(null)
   const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [displaySeconds, setDisplaySeconds] = useState(0)
+  const localClockRef = useRef<{
+    baseSeconds: number
+    startedAt: number | null
+  } | null>(null)
+  const pendingActionRef = useRef<{
+    desiredRunning: boolean
+    freezeUntil: number
+  } | null>(null)
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/timer/status')
       if (!res.ok) {
@@ -35,67 +42,150 @@ export default function TimerCard() {
         throw new Error(data.error || 'Failed to fetch status')
       }
       const data = await res.json()
+      
+      const pendingAction = pendingActionRef.current
+      const now = Date.now()
+      if (pendingAction && now < pendingAction.freezeUntil) {
+        setStatus({ ...data, isRunning: pendingAction.desiredRunning })
+        setError(null)
+        return
+      }
+
       setStatus(data)
-      setDisplaySeconds(data.elapsedSeconds)
+
+      if (data.isRunning) {
+        const clock = localClockRef.current
+        if (!clock || clock.startedAt === null) {
+          localClockRef.current = { baseSeconds: data.elapsedSeconds, startedAt: Date.now() }
+          setDisplaySeconds(data.elapsedSeconds)
+        } else {
+          const currentSeconds =
+            Math.floor((Date.now() - clock.startedAt) / 1000) + clock.baseSeconds
+          if (data.elapsedSeconds > currentSeconds + 2) {
+            localClockRef.current = { baseSeconds: data.elapsedSeconds, startedAt: Date.now() }
+            setDisplaySeconds(data.elapsedSeconds)
+          }
+        }
+      } else {
+        localClockRef.current = { baseSeconds: data.elapsedSeconds, startedAt: null }
+        setDisplaySeconds(data.elapsedSeconds)
+      }
+      if (pendingAction && now >= pendingAction.freezeUntil) {
+        pendingActionRef.current = null
+      }
       setError(null)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchStatus()
+    
     const interval = setInterval(() => {
       if (status?.isRunning) {
-        setDisplaySeconds((prev) => prev + 1)
+        const clock = localClockRef.current
+        if (clock?.startedAt) {
+          const seconds =
+            Math.floor((Date.now() - clock.startedAt) / 1000) + clock.baseSeconds
+          setDisplaySeconds(seconds)
+        } else {
+          setDisplaySeconds((prev) => prev + 1)
+        }
       }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [status?.isRunning])
+  }, [status?.isRunning, fetchStatus])
 
   useEffect(() => {
+    // Poll for status updates in background
     const interval = setInterval(fetchStatus, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchStatus])
 
-  const handleAction = async (action: 'start' | 'pause' | 'resume' | 'stop') => {
+  const handleAction = (action: 'start' | 'pause' | 'resume' | 'stop') => {
+    if (!status) return
+    
     const previousStatus = status
-    setActionLoading(action)
+    const previousSeconds = displaySeconds
     setError(null)
-
-    // Optimistic Update
-    if (status) {
-      if (action === 'start' || action === 'resume') {
-        setStatus({ ...status, isRunning: true })
-      } else if (action === 'pause') {
-        setStatus({ ...status, isRunning: false })
-      } else if (action === 'stop') {
-        setStatus({ ...status, isRunning: false, currentSession: undefined, currentSegment: undefined })
-      }
+    pendingActionRef.current = {
+      desiredRunning: action === 'start' || action === 'resume',
+      freezeUntil: Date.now() + 2500
     }
 
-    try {
-      const res = await fetch(`/api/timer/${action}`, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || `Failed to ${action} timer`)
+    // INSTANT UI UPDATE - happens synchronously, no await, no delay
+    if (action === 'start' || action === 'resume') {
+      setStatus({ ...status, isRunning: true })
+      if (action === 'start') {
+        setDisplaySeconds(0)
       }
-      
-      setStatus(data)
-      setDisplaySeconds(data.elapsedSeconds)
-      
-      // Notify other components (like TodaySessions)
-      window.dispatchEvent(new CustomEvent('worklog-timer-changed'))
-      
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
-      setStatus(previousStatus) // Rollback
-    } finally {
-      setActionLoading(null)
+      localClockRef.current = {
+        baseSeconds: action === 'start' ? 0 : displaySeconds,
+        startedAt: Date.now()
+      }
+    } else if (action === 'pause') {
+      setStatus({ ...status, isRunning: false })
+      localClockRef.current = { baseSeconds: displaySeconds, startedAt: null }
+    } else if (action === 'stop') {
+      setStatus({ 
+        ...status, 
+        isRunning: false, 
+        currentSession: undefined, 
+        currentSegment: undefined,
+        elapsedSeconds: 0
+      })
+      setDisplaySeconds(0)
+      localClockRef.current = null
     }
+
+    // Fire API call in background - completely non-blocking
+    fetch(`/api/timer/${action}`, { method: 'POST' })
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || `Failed to ${action} timer`)
+        }
+
+        const pendingAction = pendingActionRef.current
+        const now = Date.now()
+        if (pendingAction && now < pendingAction.freezeUntil) {
+          setStatus({ ...data, isRunning: pendingAction.desiredRunning })
+          return
+        }
+
+        // Update with server data after API completes
+        setStatus(data)
+        if (data.isRunning) {
+          const clock = localClockRef.current
+          if (!clock || clock.startedAt === null) {
+            localClockRef.current = { baseSeconds: data.elapsedSeconds, startedAt: Date.now() }
+            setDisplaySeconds(data.elapsedSeconds)
+          }
+        } else {
+          localClockRef.current = { baseSeconds: data.elapsedSeconds, startedAt: null }
+          setDisplaySeconds(data.elapsedSeconds)
+        }
+        pendingActionRef.current = null
+        
+        // Notify other components
+        window.dispatchEvent(new CustomEvent('worklog-timer-changed'))
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred')
+        // Rollback on error
+        setStatus(previousStatus)
+        setDisplaySeconds(previousSeconds)
+        if (previousStatus.isRunning) {
+          localClockRef.current = { baseSeconds: previousSeconds, startedAt: Date.now() }
+        } else {
+          localClockRef.current = { baseSeconds: previousSeconds, startedAt: null }
+        }
+        pendingActionRef.current = null
+      })
   }
 
   // Calculate radial progress (based on 60 minutes for a full circle effect, or just visual pulsing)
@@ -104,10 +194,15 @@ export default function TimerCard() {
   const progress = (displaySeconds % 3600) / 3600 // Fill circle every hour
   const strokeDashoffset = circumference - progress * circumference
 
-  if (loading) {
+  // Show skeleton while loading, but don't block the UI
+  if (loading && !status) {
     return (
-      <div className="glass-panel p-8 rounded-2xl flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="glass-panel p-8 rounded-2xl min-h-[400px] animate-pulse">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-72 h-72 rounded-full bg-gray-200 dark:bg-white/5 mb-8"></div>
+          <div className="h-12 bg-gray-200 dark:bg-white/5 rounded w-48 mb-2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-32"></div>
+        </div>
       </div>
     )
   }
@@ -184,27 +279,24 @@ export default function TimerCard() {
               {status.currentSession ? (
                  <button
                  onClick={() => handleAction('resume')}
-                 disabled={actionLoading !== null}
-                 className="flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-lg hover:shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                 className="flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-lg hover:shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                >
-                 {actionLoading === 'resume' ? 'Resuming...' : 'Resume'}
+                 Resume
                </button>
               ) : (
                 <button
                   onClick={() => handleAction('start')}
-                  disabled={actionLoading !== null}
-                  className="flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-lg hover:shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                  className="flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-lg hover:shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  {actionLoading === 'start' ? 'Starting...' : 'Start Timer'}
+                  Start Timer
                 </button>
               )}
               {status.currentSession && (
                 <button
                   onClick={() => handleAction('stop')}
-                  disabled={actionLoading !== null}
-                  className="py-3 px-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                  className="py-3 px-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                 >
-                  {actionLoading === 'stop' ? '...' : 'Stop'}
+                  Stop
                 </button>
               )}
             </>
@@ -212,17 +304,15 @@ export default function TimerCard() {
             <>
               <button
                 onClick={() => handleAction('pause')}
-                disabled={actionLoading !== null}
-                className="flex-1 py-3 px-6 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-xl font-medium shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                className="flex-1 py-3 px-6 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-xl font-medium shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               >
-                {actionLoading === 'pause' ? 'Pausing...' : 'Pause'}
+                Pause
               </button>
               <button
                 onClick={() => handleAction('stop')}
-                disabled={actionLoading !== null}
-                className="py-3 px-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all disabled:opacity-50"
+                className="py-3 px-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
               >
-                {actionLoading === 'stop' ? '...' : 'Stop'}
+                Stop
               </button>
             </>
           )}
