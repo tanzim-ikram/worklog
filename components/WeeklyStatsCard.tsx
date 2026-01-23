@@ -60,8 +60,8 @@ export default function WeeklyStatsCard() {
 
       <div className="flex justify-between items-center mb-6 relative">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Weekly Overview</h2>
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+          <h2 className="text-lg font-semibold text-foreground">Weekly Overview</h2>
+          <p className="text-muted-foreground text-sm">
             Last 7 Days
           </p>
         </div>

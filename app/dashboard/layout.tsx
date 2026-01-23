@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import LogoutButton from '@/components/LogoutButton'
 import Navigation from '@/components/Navigation'
+import Sidebar from '@/components/Sidebar'
 
 export default async function AppLayout({
   children,
@@ -20,41 +21,13 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 glass-panel border-r border-glass-border hidden md:flex flex-col">
-        <div className="p-4">
-          <Link href="/dashboard" className="flex items-center">
-            <Image 
-              src="/Worklog Logo.svg" 
-              alt="Worklog Logo" 
-              width={225} 
-              height={62}
-              className="dark:invert-0"
-              priority
-            />
-          </Link>
-        </div>
-
-        <div className="flex-1 overflow-y-auto py-4">
-          <Navigation />
-        </div>
-
-        <div className="p-4 border-t border-glass-border">
-          <div className="px-4 py-3 mb-2 rounded-xl bg-primary/5 border border-primary/10">
-            <p className="text-xs font-medium text-primary mb-1">Signed in as</p>
-            <p className="text-sm font-semibold truncate text-foreground" title={user.email}>
-              {user.user_metadata.full_name || user.email?.split('@')[0]}
-            </p>
-          </div>
-          <LogoutButton />
-        </div>
-      </aside>
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
+      <Sidebar user={user} />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto relative">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-size-[50px_50px]" />
-        <div className="h-full p-8 relative">
+        <div className="h-full p-4 md:p-8 relative">
           {children}
         </div>
       </main>
