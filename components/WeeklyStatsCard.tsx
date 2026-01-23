@@ -51,7 +51,7 @@ export default function WeeklyStatsCard() {
   }
 
   const days = data?.days ? Object.keys(data.days).sort() : []
-  const maxSeconds = Math.max(...(data ? Object.values(data.days).map(d => d.totalSeconds) : [0]), 3600 * 8) // At least 8h scale
+  const maxSeconds = Math.max(...(data ? Object.values(data.days).map(d => d.totalSeconds) : [0]), 3600 * 8) // At least 2h scale for better visibility
   
   return (
     <div className="glass-panel p-6 rounded-2xl flex flex-col h-full relative overflow-hidden">
@@ -85,27 +85,33 @@ export default function WeeklyStatsCard() {
 
           return (
             <div key={dateStr} className="flex-1 flex flex-col items-center group">
-              <div className="w-full relative flex flex-col items-center justify-end min-h-[140px]">
+              <div className="w-full relative flex flex-col items-center justify-end h-[260px] pb-1">
+                {/* Bar Track Background */}
+                <div className="absolute inset-x-0 bottom-0 top-0 mx-auto w-3 sm:w-4 bg-gray-100 dark:bg-white/5 rounded-t-full" />
+                
                 {/* Tooltip */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-20 pointer-events-none shadow-xl">
                   {dayData ? formatDurationHours(dayData.totalSeconds) : '0h'}
                 </div>
                 
                 {/* Duration Label (Visible above bar if there's data) */}
                 {durationLabel && (
-                  <span className="text-[9px] font-bold mb-1 text-primary/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[9px] font-bold mb-1.5 text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     {durationLabel}
                   </span>
                 )}
 
                 {/* Bar */}
                 <div 
-                  className={`w-full max-w-[16px] rounded-t-lg transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] cursor-pointer ${
+                  className={`w-3 sm:w-4 rounded-t-full transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] cursor-pointer relative z-10 ${
                     isToday 
-                      ? 'bg-primary shadow-lg shadow-primary/20' 
-                      : 'bg-primary/25 group-hover:bg-primary/40' // Increased visibility
+                      ? 'bg-primary shadow-lg shadow-primary/30' 
+                      : 'bg-primary/40 group-hover:bg-primary/70' 
                   }`}
-                  style={{ height: `${Math.max(height, 8)}%` }} // Minimum height for visibility
+                  style={{ 
+                    height: `${Math.max(height, 5)}%`,
+                    minHeight: '8px'
+                  }}
                 />
               </div>
               <span className={`mt-3 text-[10px] font-bold uppercase transition-colors ${

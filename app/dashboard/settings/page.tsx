@@ -210,7 +210,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-lg hover:shadow-primary/25 transition-all disabled:opacity-50"
+                className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium shadow-sm hover:shadow-primary/25 transition-all disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Profile'}
               </button>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={passwordLoading}
-                className="px-6 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium shadow-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all disabled:opacity-50"
+                className="px-6 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium shadow-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-all disabled:opacity-50"
               >
                 {passwordLoading ? 'Updating...' : 'Update Password'}
               </button>
