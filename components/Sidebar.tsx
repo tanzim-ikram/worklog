@@ -30,7 +30,7 @@ export default function Sidebar({ user }: SidebarProps) {
     return (
         <>
             {/* Mobile Header with Hamburger */}
-            <div className="md:hidden flex items-center justify-between p-4 bg-background border-b border-glass-border fixed top-0 left-0 right-0 z-40">
+            <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-40 shadow-sm">
                 <Link href="/dashboard" className="flex items-center">
                     <Image
                         src="/Worklog Logo.svg"
@@ -43,15 +43,15 @@ export default function Sidebar({ user }: SidebarProps) {
                 </Link>
                 <button
                     onClick={toggleSidebar}
-                    className="p-2 glass-panel rounded-xl hover:bg-primary/10 transition-colors"
+                    className="p-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100"
                     aria-label="Toggle navigation"
                 >
                     {isOpen ? (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     ) : (
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>
                     )}
@@ -61,19 +61,21 @@ export default function Sidebar({ user }: SidebarProps) {
             {/* Backdrop for mobile */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+                    className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 md:hidden"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
             {/* Sidebar aside */}
             <aside className={`
-        fixed inset-y-0 left-0 w-64 glass-panel border-r border-glass-border z-50 
+        fixed inset-y-0 left-0 w-64 border-r z-50 
         transform transition-transform duration-300 ease-in-out flex flex-col
-        md:translate-x-0 md:static md:z-10 bg-background
+        md:translate-x-0 md:static md:z-10 
+        bg-white border-gray-200 text-gray-900
+        dark:md:bg-background dark:md:border-glass-border dark:md:text-foreground
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-                <div className="p-4 flex items-center justify-between">
+                <div className="p-4 flex items-center justify-between border-b border-gray-50 md:border-none">
                     <Link href="/dashboard" className="flex items-center">
                         <Image
                             src="/Worklog Logo.svg"
@@ -86,7 +88,7 @@ export default function Sidebar({ user }: SidebarProps) {
                     </Link>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="md:hidden p-2 text-gray-500 hover:text-gray-900"
+                        className="md:hidden p-2 text-gray-400 hover:text-gray-600"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -94,14 +96,14 @@ export default function Sidebar({ user }: SidebarProps) {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto py-4">
+                <div className="flex-1 overflow-y-auto py-4 mobile-sidebar-nav">
                     <Navigation />
                 </div>
 
-                <div className="p-4 border-t border-glass-border">
-                    <div className="px-4 py-3 mb-2 rounded-xl bg-primary/5 border border-primary/10">
-                        <p className="text-xs font-medium text-primary mb-1">Signed in as</p>
-                        <p className="text-sm font-semibold truncate text-foreground" title={user.email || ''}>
+                <div className="p-4 border-t border-gray-100 md:dark:border-glass-border">
+                    <div className="px-4 py-3 mb-2 rounded-xl bg-gray-50 border border-gray-100 md:dark:bg-primary/5 md:dark:border-primary/10">
+                        <p className="text-xs font-medium text-gray-500 md:dark:text-primary mb-1">Signed in as</p>
+                        <p className="text-sm font-semibold truncate text-gray-900 md:dark:text-foreground" title={user.email || ''}>
                             {user.user_metadata.full_name || user.email?.split('@')[0]}
                         </p>
                     </div>

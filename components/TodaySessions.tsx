@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { formatDurationHours } from '@/lib/utils/timezone'
 import { format, parseISO } from 'date-fns'
+import AddSessionModal from './AddSessionModal'
 
 interface Session {
   id: string
@@ -24,7 +25,8 @@ export default function TodaySessions() {
   const [editForm, setEditForm] = useState<{ start: string; end: string; note: string }>({ start: '', end: '', note: '' })
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
   const today = format(new Date(), 'yyyy-MM-dd')
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function TodaySessions() {
   const handleEditClick = (session: Session) => {
     const firstStart = session.segments[0]?.start_at
     const lastEnd = session.segments[session.segments.length - 1]?.end_at
-    
+
     const formatForInput = (isoStr?: string | null) => {
       if (!isoStr) return ''
       return format(parseISO(isoStr), "yyyy-MM-dd'T'HH:mm")
@@ -72,7 +74,7 @@ export default function TodaySessions() {
 
   const handleDeleteClick = async (sessionId: string) => {
     if (!confirm('Are you sure you want to delete this session?')) return
-    
+
     setDeletingId(sessionId)
     try {
       const res = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' })
@@ -93,21 +95,21 @@ export default function TodaySessions() {
       if (!session) return
 
       const payload: any = {}
-      
+
       // Only include note if changed
       if (editForm.note !== (session.note || '')) {
         payload.note = editForm.note
       }
-      
+
       // Only include times if changed
       const originalStart = session.segments[0]?.start_at
       const originalEnd = session.segments[session.segments.length - 1]?.end_at
-      
+
       const formatForInput = (isoStr?: string | null) => {
         if (!isoStr) return ''
         return format(parseISO(isoStr), "yyyy-MM-dd'T'HH:mm")
       }
-      
+
       if (editForm.start && editForm.start !== formatForInput(originalStart)) {
         const start = new Date(editForm.start)
         if (isNaN(start.getTime())) {
@@ -115,7 +117,7 @@ export default function TodaySessions() {
         }
         payload.start_at = start.toISOString()
       }
-      
+
       if (editForm.end !== formatForInput(originalEnd)) {
         if (editForm.end) {
           const end = new Date(editForm.end)
@@ -146,10 +148,10 @@ export default function TodaySessions() {
         const errorData = await res.json().catch(() => ({}))
         throw new Error(errorData.error || `Update failed with status ${res.status}`)
       }
-      
+
       await fetchSessions()
       setEditingId(null)
-      
+
       // Notify other components (like WeeklyStatsCard)
       window.dispatchEvent(new CustomEvent('worklog-timer-changed'))
     } catch (err) {
@@ -175,13 +177,22 @@ export default function TodaySessions() {
   if (sessions.length === 0) {
     return (
       <div className="glass-panel p-8 rounded-2xl text-center flex flex-col items-center justify-center min-h-[200px]">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4 hover:bg-primary/20 transition-colors"
+          title="Add manual session"
+        >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-        </div>
+        </button>
         <h2 className="text-xl font-semibold mb-2">Ready to Focus?</h2>
-        <p className="text-muted-foreground max-w-xs">Start the timer above to record your first session today.</p>
+        <p className="text-muted-foreground max-w-xs">Start the timer above to record your first session today or add one manually.</p>
+        <AddSessionModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={fetchSessions}
+        />
       </div>
     )
   }
@@ -206,52 +217,51 @@ export default function TodaySessions() {
           const isDeleting = deletingId === session.id
 
           return (
-            <div 
-              key={session.id} 
-              className={`group relative bg-white/50 dark:bg-white/5 border border-transparent hover:border-primary/20 rounded-xl p-4 transition-all ${
-                isDeleting ? 'opacity-50 pointer-events-none' : ''
-              }`}
+            <div
+              key={session.id}
+              className={`group relative bg-white/50 dark:bg-white/5 border border-transparent hover:border-primary/20 rounded-xl p-4 transition-all ${isDeleting ? 'opacity-50 pointer-events-none' : ''
+                }`}
             >
               {isEditing ? (
                 <div className="space-y-4 animate-fade-in-up">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-muted-foreground mb-1 block">Start Time</label>
-                      <input 
-                        type="datetime-local" 
+                      <input
+                        type="datetime-local"
                         value={editForm.start}
-                        onChange={e => setEditForm({...editForm, start: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, start: e.target.value })}
                         className="w-full text-sm bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors"
                       />
                     </div>
                     <div>
                       <label className="text-xs font-medium text-muted-foreground mb-1 block">End Time</label>
-                      <input 
-                        type="datetime-local" 
+                      <input
+                        type="datetime-local"
                         value={editForm.end}
-                        onChange={e => setEditForm({...editForm, end: e.target.value})}
+                        onChange={e => setEditForm({ ...editForm, end: e.target.value })}
                         className="w-full text-sm bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Note</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={editForm.note}
-                      onChange={e => setEditForm({...editForm, note: e.target.value})}
+                      onChange={e => setEditForm({ ...editForm, note: e.target.value })}
                       className="w-full text-sm bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors"
                       placeholder="What were you working on?"
                     />
                   </div>
                   <div className="flex gap-2 justify-end pt-2">
-                    <button 
+                    <button
                       onClick={() => setEditingId(null)}
                       className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl transition-colors"
                     >
                       Cancel
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleSave(session.id)}
                       disabled={saving}
                       className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary/90 text-white rounded-xl shadow-sm transition-colors disabled:opacity-50"
@@ -276,14 +286,14 @@ export default function TodaySessions() {
                       <div className="mt-1 text-sm text-muted-foreground italic">Add a note...</div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                     <div className="text-sm font-mono font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-lg whitespace-nowrap">
                       {formatDurationHours(totalSeconds)}
                     </div>
-                    
+
                     <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(session)}
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
                         title="Edit session"
@@ -292,7 +302,7 @@ export default function TodaySessions() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteClick(session.id)}
                         className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors"
                         title="Delete session"
@@ -309,6 +319,11 @@ export default function TodaySessions() {
           )
         })}
       </div>
+      <AddSessionModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchSessions}
+      />
     </div>
   )
 }

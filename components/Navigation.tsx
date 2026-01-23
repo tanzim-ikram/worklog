@@ -15,11 +15,10 @@ export default function Navigation() {
 
   const getLinkClasses = (path: string) => {
     const active = isActive(path)
-    return `group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-      active
-        ? 'bg-primary/10 text-primary font-medium shadow-sm'
-        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-200'
-    }`
+    return `group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active
+      ? 'bg-primary/10 text-primary font-medium shadow-sm'
+      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:md:text-gray-400 dark:md:hover:bg-white/5 dark:md:hover:text-gray-200'
+      }`
   }
 
   return (
@@ -30,11 +29,11 @@ export default function Navigation() {
         </svg>
         Dashboard
       </Link>
-      
-      <div className="pt-4 pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+
+      <div className="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 dark:md:text-gray-400 uppercase tracking-wider">
         Analytics
       </div>
-      
+
       <Link href="/dashboard/day" prefetch={true} className={getLinkClasses('/dashboard/day')}>
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -54,7 +53,7 @@ export default function Navigation() {
         Month View
       </Link>
 
-      <div className="pt-4 pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <div className="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 dark:md:text-gray-400 uppercase tracking-wider">
         System
       </div>
 
